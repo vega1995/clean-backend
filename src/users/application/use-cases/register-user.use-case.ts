@@ -8,20 +8,20 @@ import type { UserRepository } from "../../domain/repositories/user.repository.t
 
 
     export class RegisterUserUseCase {
-        private readonly userRepository: UserRepository
-        constructor(repository: UserRepository) {
-            this.userRepository = repository;
-        }
+  private readonly repository: UserRepository;
 
-        async execute(name: string, email: string): Promise<User> {
-            const user = User.create(name, email);
-            
-            if(await this.userRepository.findByEmail(user.email)){
-                throw new ConflictError('El usuario ya existe');
-            }
+  constructor(repository: UserRepository) {
+    this.repository = repository;
+  }
 
-            await this.userRepository.save(user);            
+  async execute(name: string, email: string): Promise<User> {
+    const user = User.create(name, email);
 
-            return user;
-        }
+    if (await this.repository.findByEmail(user.email)) {
+      throw new ConflictError('El email ya está registrado');
     }
+
+    await this.repository.save(user);
+    return user;
+  }
+}

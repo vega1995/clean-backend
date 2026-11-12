@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "echo \"Error: no test specified\" && exit 1",
-    "dev": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/main.ts",
+    "dev": "node --watch src/main.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "echo \"Error: no test specified\" && exit 1"
@@ -15,11 +15,16 @@
     "node": ">=24.0.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^24.0.0",
     "typescript": "~5.9.3",
     "vitest": "^5.1.0"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.3.0",
+    "zod": "^4.6.7"
+  }
 }

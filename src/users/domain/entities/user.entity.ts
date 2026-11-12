@@ -28,5 +28,7 @@ export class User{
       return new User(cleanName, cleanEmail);
     }
 
+    static normalizeEmail = (email: string): string => email.trim().toLowerCase();
+
 }
 
