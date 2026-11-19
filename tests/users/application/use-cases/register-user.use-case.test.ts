@@ -3,6 +3,8 @@ import { ConflictError, ValidationError } from '../../../../src/shared/domain/er
 import { RegisterUserUseCase } from '../../../../src/users/application/use-cases/register-user.use-case.ts';
 import { User } from '../../../../src/users/domain/entities/user.entity.ts';
 import type { UserRepository } from '../../../../src/users/domain/repositories/user.repository.ts';
+import { FindUserUseCase } from '../../../../src/users/application/use-cases/find-user.use-case.ts';
+import { InMemoryUserRepository } from '../../../../src/users/infrastructure/repositories/in-memory.user-repository.ts';
 
 function createRepository() {
   return {
@@ -16,7 +18,7 @@ describe('RegisterUserUseCase', () => {
     const repository = createRepository();
     const useCase = new RegisterUserUseCase(repository);
 
-    const user = await useCase.execute('  Ana  ', '  ANA@example.coM  ');
+    const user = await useCase.execute({ name: '  Ana  ', email: '  ANA@example.coM  ' });
 
     expect(user).toBeInstanceOf(User);
     expect(user.name).toBe('Ana');
@@ -25,13 +27,25 @@ describe('RegisterUserUseCase', () => {
     expect(repository.save).toHaveBeenCalledExactlyOnceWith(user);
   });
 
+  test('conserva el UUID al registrar y consultar el usuario', async () => {
+    const repository = new InMemoryUserRepository();
+    const registered = await new RegisterUserUseCase(repository).execute({
+      name: 'Ana', email: 'ana@example.com',
+    });
+    const found = await new FindUserUseCase(repository).execute(' ANA@example.com ');
+
+    expect(registered.id).toEqual(expect.any(String));
+    expect(found.id).toBe(registered.id);
+    expect(found).toBe(registered);
+  });
+
   test('rechaza un email duplicado normalizado sin guardar otro usuario', async () => {
     const repository = createRepository();
-    repository.findByEmail.mockResolvedValue(User.create('Ana', 'ana@example.com'));
+    repository.findByEmail.mockResolvedValue(User.create({ name: 'Ana', email: 'ana@example.com' }));
     const useCase = new RegisterUserUseCase(repository);
 
-    await expect(useCase.execute('Otra persona', '  ANA@example.com  ')).rejects.toThrow(
-      new ConflictError('El usuario ya existe')
+    await expect(useCase.execute({ name: 'Otra persona', email: '  ANA@example.com  ' })).rejects.toThrow(
+      new ConflictError('El email ya está registrado')
     );
 
     expect(repository.findByEmail).toHaveBeenCalledExactlyOnceWith('ana@example.com');
@@ -46,7 +60,7 @@ describe('RegisterUserUseCase', () => {
     const repository = createRepository();
     const useCase = new RegisterUserUseCase(repository);
 
-    await expect(useCase.execute(name, email)).rejects.toThrow(ValidationError);
+    await expect(useCase.execute({ name, email })).rejects.toThrow(ValidationError);
 
     expect(repository.findByEmail).not.toHaveBeenCalled();
     expect(repository.save).not.toHaveBeenCalled();
@@ -58,7 +72,7 @@ describe('RegisterUserUseCase', () => {
     repository.findByEmail.mockRejectedValue(error);
     const useCase = new RegisterUserUseCase(repository);
 
-    await expect(useCase.execute('Ana', 'ana@example.com')).rejects.toBe(error);
+    await expect(useCase.execute({ name: 'Ana', email: 'ana@example.com' })).rejects.toBe(error);
 
     expect(repository.save).not.toHaveBeenCalled();
   });
@@ -69,7 +83,7 @@ describe('RegisterUserUseCase', () => {
     repository.save.mockRejectedValue(error);
     const useCase = new RegisterUserUseCase(repository);
 
-    await expect(useCase.execute('Ana', 'ana@example.com')).rejects.toBe(error);
+    await expect(useCase.execute({ name: 'Ana', email: 'ana@example.com' })).rejects.toBe(error);
 
     expect(repository.save).toHaveBeenCalledTimes(1);
   });

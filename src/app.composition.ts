@@ -7,6 +7,16 @@ import { RegisterUserController } from "./users/presentation/controllers/registe
 import { createUsersRouter } from "./users/routes/user.route.ts";
 import { FindUserController } from "./users/presentation/controllers/find-user-controller.ts";
 import { FindUserUseCase } from "./users/application/use-cases/find-user.use-case.ts";
+import { InMemoryPaymentRepository } from './payments/infrastructure/repositories/in-memory.payment-repository.ts';
+import { RegisterPaymentUseCase } from './payments/application/use-cases/register-payment.use-case.ts';
+import { FindPaymentUseCase } from './payments/application/use-cases/find-payment.use-case.ts';
+import { FindPaymentByReferenceUseCase } from './payments/application/use-cases/find-payment-by-reference.use-case.ts';
+import { ListPaymentsUseCase } from './payments/application/use-cases/list-payments.use-case.ts';
+import { RegisterPaymentController } from './payments/presentation/controllers/register-payment-controller.ts';
+import { FindPaymentController } from './payments/presentation/controllers/find-payment-controller.ts';
+import { FindPaymentByReferenceController } from './payments/presentation/controllers/find-payment-by-reference-controller.ts';
+import { ListPaymentsController } from './payments/presentation/controllers/list-payments-controller.ts';
+import { createPaymentsRouter } from './payments/routes/payment.route.ts';
 
 export function createApp() {
     //! Repositorios
@@ -27,7 +37,18 @@ export function createApp() {
     router.use("/users", createUsersRouter(registerUserController, findUserController));
     
 
-    //TODO:/paym
+    const paymentRepository = new InMemoryPaymentRepository();
+    const registerPaymentUseCase = new RegisterPaymentUseCase(paymentRepository);
+    const findPaymentUseCase = new FindPaymentUseCase(paymentRepository);
+    const findPaymentByReferenceUseCase = new FindPaymentByReferenceUseCase(paymentRepository);
+    const listPaymentsUseCase = new ListPaymentsUseCase(paymentRepository);
+
+    router.use('/payments', createPaymentsRouter(
+        new RegisterPaymentController(registerPaymentUseCase),
+        new FindPaymentController(findPaymentUseCase),
+        new FindPaymentByReferenceController(findPaymentByReferenceUseCase),
+        new ListPaymentsController(listPaymentsUseCase),
+    ));
 
     return createExpressApp(router);
 }

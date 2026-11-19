@@ -2,7 +2,7 @@
 // Hace reutilizable el registro sin conocer HTTP ni el almacenamiento concreto; sin él, esa secuencia se repartiría entre adaptadores.
 
 import { ConflictError } from "../../../shared/domain/errors/domain.errors.ts";
-import { User } from "../../domain/entities/user.entity.ts";
+import { User, type CreateUserData } from "../../domain/entities/user.entity.ts";
 import type { UserRepository } from "../../domain/repositories/user.repository.ts";
 
 
@@ -14,8 +14,8 @@ import type { UserRepository } from "../../domain/repositories/user.repository.t
     this.repository = repository;
   }
 
-  async execute(name: string, email: string): Promise<User> {
-    const user = User.create(name, email);
+  async execute(input:CreateUserData): Promise<User> {
+    const user = User.create(input);
 
     if (await this.repository.findByEmail(user.email)) {
       throw new ConflictError('El email ya está registrado');

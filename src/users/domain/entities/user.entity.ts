@@ -6,26 +6,48 @@
 
 import { ValidationError } from '../../../shared/domain/errors/domain.errors.ts';
 
+const userRoles = ['admin', 'user', 'sales'] as const;
+
+ export type UserRoles = (typeof userRoles)[number];
+
+
+ export interface CreateUserData{
+    name: string;
+    email: string;
+    role?: UserRoles;
+ }
+
 export class User{
+
+    readonly id: string;
     readonly name: string;
     readonly email:string;
-    private constructor(name: string, email: string){
+    readonly role: UserRoles ;
+    private constructor( user:{   name: string, email: string, role: UserRoles}){
+       const {name, email, role} = user;
+        this.id = globalThis.crypto.randomUUID();
         this.name = name;
         this.email = email;
+        this.role = role;
         Object.freeze(this);
     }
 
-    static create(name: string, email: string): User{
-      const cleanName = name.trim();
-      const cleanEmail = email.trim().toLowerCase();
+    static create(input:CreateUserData): User{
+      const cleanName = input.name.trim();
+      const cleanEmail = input.email.trim().toLowerCase();
+      const role = input.role || 'user';
       if(!cleanName || !cleanEmail){
         throw new ValidationError('Nombre y correo electrónico son obligatorios');
       }
       if(!cleanEmail.includes('@') ){
         throw new ValidationError('Correo electrónico inválido');
       }
+
+      if(!userRoles.includes(role)){
+        throw new ValidationError(`Rol inválido. Los roles válidos son: ${userRoles.join(', ')}`);
+      }
       
-      return new User(cleanName, cleanEmail);
+      return new User({name: cleanName, email: cleanEmail, role});
     }
 
     static normalizeEmail = (email: string): string => email.trim().toLowerCase();

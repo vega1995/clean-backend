@@ -6,7 +6,7 @@ import { InMemoryUserRepository } from '../../../../src/users/infrastructure/rep
 describe('InMemoryUserRepository', () => {
   test('busca usuarios guardados por email', async () => {
     const repository = new InMemoryUserRepository();
-    const user = User.create('Ana', 'ana@example.com');
+    const user = User.create({ name: 'Ana', email: 'ana@example.com' });
 
     expect(await repository.findByEmail(user.email)).toBeUndefined();
 
@@ -18,8 +18,8 @@ describe('InMemoryUserRepository', () => {
 
   test('rechaza un email duplicado y conserva el usuario original', async () => {
     const repository = new InMemoryUserRepository();
-    const original = User.create('Ana', 'ana@example.com');
-    const duplicate = User.create('Otra persona', 'ana@example.com');
+    const original = User.create({ name: 'Ana', email: 'ana@example.com' });
+    const duplicate = User.create({ name: 'Otra persona', email: 'ana@example.com' });
     await repository.save(original);
 
     await expect(repository.save(duplicate)).rejects.toThrow(ConflictError);
