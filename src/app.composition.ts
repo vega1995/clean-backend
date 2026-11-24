@@ -9,6 +9,7 @@ import { createUsersRouter } from "./users/routes/user.route.ts";
 import { FindUserController } from "./users/presentation/controllers/find-user-controller.ts";
 import { FindUserUseCase } from "./users/application/use-cases/find-user.use-case.ts";
 import { InMemoryPaymentRepository } from './payments/infrastructure/repositories/in-memory.payment-repository.ts';
+import type { PaymentRepository } from './payments/domain/repositories/payment.repository.ts';
 import { RegisterPaymentUseCase } from './payments/application/use-cases/register-payment.use-case.ts';
 import { FindPaymentUseCase } from './payments/application/use-cases/find-payment.use-case.ts';
 import { FindPaymentByReferenceUseCase } from './payments/application/use-cases/find-payment-by-reference.use-case.ts';
@@ -19,6 +20,7 @@ import { FindPaymentByReferenceController } from './payments/presentation/contro
 import { ListPaymentsController } from './payments/presentation/controllers/list-payments-controller.ts';
 import { createPaymentsRouter } from './payments/routes/payment.route.ts';
 import { InMemoryProductRepository } from './products/infrastructure/repositories/in-memory.product-repository.ts';
+import type { ProductRepository } from './products/domain/repositories/product.repository.ts';
 import { RegisterProductUseCase } from './products/application/use-cases/register-product.use-case.ts';
 import { FindProductUseCase } from './products/application/use-cases/find-product.use-case.ts';
 import { ListProductsUseCase } from './products/application/use-cases/list-products.use-case.ts';
@@ -27,7 +29,19 @@ import { FindProductController } from './products/presentation/controllers/find-
 import { ListProductsController } from './products/presentation/controllers/list-products-controller.ts';
 import { createProductsRouter } from './products/routes/product.route.ts';
 
-export function createApp(userRepository: UserRepository = new InMemoryUserRepository()) {
+interface AppRepositories {
+    userRepository?: UserRepository;
+    productRepository?: ProductRepository;
+    paymentRepository?: PaymentRepository;
+}
+
+export function createApp(
+    {
+        userRepository = new InMemoryUserRepository(),
+        productRepository = new InMemoryProductRepository(),
+        paymentRepository = new InMemoryPaymentRepository(),
+    }: AppRepositories = {},
+) {
     //! Casos de uso
     const registerUserUseCase=new RegisterUserUseCase(userRepository);
     const findUserUseCase=new FindUserUseCase(userRepository);
@@ -43,7 +57,6 @@ export function createApp(userRepository: UserRepository = new InMemoryUserRepos
     router.use("/users", createUsersRouter(registerUserController, findUserController));
     
 
-    const paymentRepository = new InMemoryPaymentRepository();
     const registerPaymentUseCase = new RegisterPaymentUseCase(paymentRepository);
     const findPaymentUseCase = new FindPaymentUseCase(paymentRepository);
     const findPaymentByReferenceUseCase = new FindPaymentByReferenceUseCase(paymentRepository);
@@ -56,7 +69,6 @@ export function createApp(userRepository: UserRepository = new InMemoryUserRepos
         new ListPaymentsController(listPaymentsUseCase),
     ));
 
-    const productRepository = new InMemoryProductRepository();
     const registerProductUseCase = new RegisterProductUseCase(productRepository);
     const findProductUseCase = new FindProductUseCase(productRepository);
     const listProductsUseCase = new ListProductsUseCase(productRepository);

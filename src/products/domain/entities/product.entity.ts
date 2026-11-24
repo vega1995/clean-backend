@@ -10,6 +10,10 @@ export interface CreateProductData {
   images?: readonly string[];
 }
 
+export interface RestoreProductData extends Required<CreateProductData> {
+  id: string;
+}
+
 export class Product {
   readonly id: string;
   readonly name: string;
@@ -20,8 +24,8 @@ export class Product {
   readonly category: string;
   readonly images: readonly string[];
 
-  private constructor(input: Required<CreateProductData>) {
-    this.id = globalThis.crypto.randomUUID();
+  private constructor(input: RestoreProductData) {
+    this.id = input.id;
     this.name = input.name;
     this.cost = input.cost;
     this.price = input.price;
@@ -33,6 +37,15 @@ export class Product {
   }
 
   static create(input: CreateProductData): Product {
+    const data = Product.validate(input);
+    return new Product({ id: globalThis.crypto.randomUUID(), ...data });
+  }
+
+  static restore({ id, ...input }: RestoreProductData): Product {
+    return new Product({ id, ...Product.validate(input) });
+  }
+
+  private static validate(input: CreateProductData): Required<CreateProductData> {
     const { cost, price, stock, images = [] } = input;
     const name = input.name.trim();
     const category = input.category.trim();
@@ -60,7 +73,7 @@ export class Product {
       return image.trim();
     });
 
-    return new Product({
+    return {
       name,
       cost,
       price,
@@ -68,6 +81,6 @@ export class Product {
       description: input.description.trim(),
       category,
       images: normalizedImages,
-    });
+    };
   }
 }
