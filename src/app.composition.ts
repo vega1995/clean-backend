@@ -1,33 +1,12 @@
-import { Router } from "express";
-import { createExpressApp } from "./server/presentation/config/express.config.ts";
-import { createPublicRoutes } from "./server/presentation/routes/public.routes.ts";
-import { InMemoryUserRepository } from "./users/infrastructure/repositories/in-memory.user-repository.ts";
-import type { UserRepository } from "./users/domain/repositories/user.repository.ts";
-import { RegisterUserUseCase } from "./users/application/use-cases/register-user.use-case.ts";
-import { RegisterUserController } from "./users/presentation/controllers/register-user-controller.ts";
-import { createUsersRouter } from "./users/routes/user.route.ts";
-import { FindUserController } from "./users/presentation/controllers/find-user-controller.ts";
-import { FindUserUseCase } from "./users/application/use-cases/find-user.use-case.ts";
-import { InMemoryPaymentRepository } from './payments/infrastructure/repositories/in-memory.payment-repository.ts';
+import { Router } from 'express';
 import type { PaymentRepository } from './payments/domain/repositories/payment.repository.ts';
-import { RegisterPaymentUseCase } from './payments/application/use-cases/register-payment.use-case.ts';
-import { FindPaymentUseCase } from './payments/application/use-cases/find-payment.use-case.ts';
-import { FindPaymentByReferenceUseCase } from './payments/application/use-cases/find-payment-by-reference.use-case.ts';
-import { ListPaymentsUseCase } from './payments/application/use-cases/list-payments.use-case.ts';
-import { RegisterPaymentController } from './payments/presentation/controllers/register-payment-controller.ts';
-import { FindPaymentController } from './payments/presentation/controllers/find-payment-controller.ts';
-import { FindPaymentByReferenceController } from './payments/presentation/controllers/find-payment-by-reference-controller.ts';
-import { ListPaymentsController } from './payments/presentation/controllers/list-payments-controller.ts';
-import { createPaymentsRouter } from './payments/routes/payment.route.ts';
-import { InMemoryProductRepository } from './products/infrastructure/repositories/in-memory.product-repository.ts';
+import { composePaymentsRouter } from './payments/payments.composition.ts';
 import type { ProductRepository } from './products/domain/repositories/product.repository.ts';
-import { RegisterProductUseCase } from './products/application/use-cases/register-product.use-case.ts';
-import { FindProductUseCase } from './products/application/use-cases/find-product.use-case.ts';
-import { ListProductsUseCase } from './products/application/use-cases/list-products.use-case.ts';
-import { RegisterProductController } from './products/presentation/controllers/register-product-controller.ts';
-import { FindProductController } from './products/presentation/controllers/find-product-controller.ts';
-import { ListProductsController } from './products/presentation/controllers/list-products-controller.ts';
-import { createProductsRouter } from './products/routes/product.route.ts';
+import { composeProductsRouter } from './products/products.composition.ts';
+import { createExpressApp } from './server/presentation/config/express.config.ts';
+import { createPublicRoutes } from './server/presentation/routes/public.routes.ts';
+import type { UserRepository } from './users/domain/repositories/user.repository.ts';
+import { composeUsersRouter } from './users/users.composition.ts';
 
 interface AppRepositories {
     userRepository?: UserRepository;
@@ -36,48 +15,14 @@ interface AppRepositories {
 }
 
 export function createApp(
-    {
-        userRepository = new InMemoryUserRepository(),
-        productRepository = new InMemoryProductRepository(),
-        paymentRepository = new InMemoryPaymentRepository(),
-    }: AppRepositories = {},
+    { userRepository, productRepository, paymentRepository }: AppRepositories = {},
 ) {
-    //! Casos de uso
-    const registerUserUseCase=new RegisterUserUseCase(userRepository);
-    const findUserUseCase=new FindUserUseCase(userRepository);
+    const router = Router();
 
-    //! Controladores
-    const registerUserController=new RegisterUserController(registerUserUseCase); 
-    const findUserController=new FindUserController(findUserUseCase);
-    const router=Router();
-
-    router.use("/", createPublicRoutes());
-
-    //!users
-    router.use("/users", createUsersRouter(registerUserController, findUserController));
-    
-
-    const registerPaymentUseCase = new RegisterPaymentUseCase(paymentRepository);
-    const findPaymentUseCase = new FindPaymentUseCase(paymentRepository);
-    const findPaymentByReferenceUseCase = new FindPaymentByReferenceUseCase(paymentRepository);
-    const listPaymentsUseCase = new ListPaymentsUseCase(paymentRepository);
-
-    router.use('/payments', createPaymentsRouter(
-        new RegisterPaymentController(registerPaymentUseCase),
-        new FindPaymentController(findPaymentUseCase),
-        new FindPaymentByReferenceController(findPaymentByReferenceUseCase),
-        new ListPaymentsController(listPaymentsUseCase),
-    ));
-
-    const registerProductUseCase = new RegisterProductUseCase(productRepository);
-    const findProductUseCase = new FindProductUseCase(productRepository);
-    const listProductsUseCase = new ListProductsUseCase(productRepository);
-
-    router.use('/products', createProductsRouter(
-        new RegisterProductController(registerProductUseCase),
-        new FindProductController(findProductUseCase),
-        new ListProductsController(listProductsUseCase),
-    ));
+    router.use('/', createPublicRoutes());
+    router.use('/users', composeUsersRouter(userRepository));
+    router.use('/payments', composePaymentsRouter(paymentRepository));
+    router.use('/products', composeProductsRouter(productRepository));
 
     return createExpressApp(router);
 }

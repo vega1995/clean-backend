@@ -13,7 +13,8 @@ import { SqliteUserRepository } from '../../../src/users/infrastructure/reposito
 async function withSqliteApi(databasePath: string, run: (baseUrl: string) => Promise<void>) {
   const database = new Database(databasePath);
   try {
-    const server = createApp(new SqliteUserRepository(database), {
+    const server = createApp({
+      userRepository: new SqliteUserRepository(database),
       productRepository: new SqliteProductRepository(database),
       paymentRepository: new SqlitePaymentRepository(database),
     }).listen(0, '127.0.0.1');
