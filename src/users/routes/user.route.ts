@@ -19,15 +19,7 @@ export function createUsersRouter(registerUserController: RegisterUserController
             const user=await registerUserController.handle(body);
 
             response.status(201).json(user);
-
-        
-
-
-        response.json({
-            message: "Usuario registrado exitosamente"
         });
-
-    });
 
     router.get("/:email",       
         async (request, response) => {

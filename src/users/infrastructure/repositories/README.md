@@ -2,4 +2,6 @@
 
 Aquí es donde se implementan los contratos del repositorio definidos en el dominio.
 
-Existe para resolver, por ejemplo, el almacenamiento. Actualmente lo vamos hacer con memoria, pero después puede ser que lo tengamos en localstorage y después lo vamos a tener en una base de datos. Pero esos cambios no deberían impactar las reglas de uso ni las implementaciones restantes
+`npm start` y `npm run dev` usan `SqliteUserRepository` para guardar usuarios. Al arrancar, el servidor crea la carpeta `data` si hace falta y abre o crea `data/clean-databae.sqlite` dentro del proyecto. La base conserva los usuarios entre reinicios y la tabla se crea automáticamente.
+
+`InMemoryUserRepository` está disponible para las pruebas. Ambos repositorios implementan `UserRepository`.

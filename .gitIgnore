@@ -1,1 +1,5 @@
 node_modules/
+/users.sqlite
+/users.sqlite-journal
+/data/clean-databae.sqlite
+/data/clean-databae.sqlite-*

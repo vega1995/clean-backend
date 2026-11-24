@@ -2,6 +2,7 @@ import { Router } from "express";
 import { createExpressApp } from "./server/presentation/config/express.config.ts";
 import { createPublicRoutes } from "./server/presentation/routes/public.routes.ts";
 import { InMemoryUserRepository } from "./users/infrastructure/repositories/in-memory.user-repository.ts";
+import type { UserRepository } from "./users/domain/repositories/user.repository.ts";
 import { RegisterUserUseCase } from "./users/application/use-cases/register-user.use-case.ts";
 import { RegisterUserController } from "./users/presentation/controllers/register-user-controller.ts";
 import { createUsersRouter } from "./users/routes/user.route.ts";
@@ -26,10 +27,7 @@ import { FindProductController } from './products/presentation/controllers/find-
 import { ListProductsController } from './products/presentation/controllers/list-products-controller.ts';
 import { createProductsRouter } from './products/routes/product.route.ts';
 
-export function createApp() {
-    //! Repositorios
-    const userRepository =new InMemoryUserRepository(); 
-
+export function createApp(userRepository: UserRepository = new InMemoryUserRepository()) {
     //! Casos de uso
     const registerUserUseCase=new RegisterUserUseCase(userRepository);
     const findUserUseCase=new FindUserUseCase(userRepository);
